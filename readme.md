@@ -1,6 +1,21 @@
 # C HashMap
 A fast hash map/hash table (whatever you want to call it) for the C programming language. It can associate a key with a pointer or integer value in O(1) time.
 
+## Docs
+
+### Table of Contents:
+
+1. [Create a Map](create-a-map)
+2. [Proper Usage of Keys](proper-usage-of-keys)
+3. [Getting Values From Keys](getting-values-from-keys)
+4. [Adding/Setting Entries](addingsetting-entries)
+5. [Removing Entries](removing-entries)
+6. [Callbacks/Iterating Over Elements](callbacksiterating-over-elements)
+7. [Cleaning Up](cleaning-up)
+8. [Clean up Old Data When Overwriting an Entry](clean-up-old-data-when-overwriting-an-entry)
+9. [Clean up Old Data When Removing an Entry](clean-up-old-data-when-removing-an-entry)
+10. [Using Different Hash Functions](using different hash functions)
+
 ## Create a Map
 
 Maps can easily be created like so:
@@ -168,7 +183,7 @@ Example:
 hashmap_remove(m, "hello", 5);
 ```
 
-If you want to free an entry's data before removing that entry, there's a variation of `hashmap_remove()` called `hashmap_remove_free()`. More info on this can be found in the "[Callbacks/Iterating Over Elements](callbacks-iterating-over-elements)" section.
+If you want to free an entry's data before removing that entry, there's a variation of `hashmap_remove()` called `hashmap_remove_free()`. More info on this can be found in the "[Callbacks/Iterating Over Elements](callbacksiterating-over-elements)" section.
 
 ## Callbacks/Iterating Over Elements
 
@@ -231,7 +246,7 @@ This also applies to freeing any data that's referenced by an entry's `uintptr_t
 
 Freeing keys through `hashmap_iterate()` can be safely done before calling `hashmap_free()`, but doing anything besides freeing the hashmap after freeing or modifying keys is unsafe.
 
-More information on `hashmap_iterate()` can be found in the "[Callbacks/Iterating Over Elements](callbacks-iterating-over-elements)" section above.
+More information on `hashmap_iterate()` can be found in the "[Callbacks/Iterating Over Elements](callbacksiterating-over-elements)" section above.
 
 ### Clean up Old Data When Overwriting an Entry
 
@@ -270,7 +285,7 @@ const char* key = get_str();
 hashmap_set_free(m, key, strlen(key), 400, ov_free, key);
 ```
 
-More information on using callbacks can be found in the "[Callbacks/Iterating Over Elements](callbacks-iterating-over-elements)" section above.
+More information on using callbacks can be found in the "[Callbacks/Iterating Over Elements](callbacksiterating-over-elements)" section above.
 
 ### Clean up Old Data When Removing an Entry
 
@@ -308,7 +323,7 @@ hashmap_set(m, "hello", 5, malloc(100));
 hashmap_remove_free(m, "hello", 5, free_map_entry, NULL);
 ```
 
-More information on using callbacks can be found in the "[Callbacks/Iterating Over Elements](callbacks-iterating-over-elements)" section above.
+More information on using callbacks can be found in the "[Callbacks/Iterating Over Elements](callbacksiterating-over-elements)" section above.
 
 ## Using Different Hash Functions
 
