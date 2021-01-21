@@ -14,7 +14,7 @@ A fast hash map/hash table (whatever you want to call it) for the C programming 
 7. [Cleaning Up](#cleaning-up)
 8. [Clean up Old Data When Overwriting an Entry](#clean-up-old-data-when-overwriting-an-entry)
 9. [Clean up Old Data When Removing an Entry](#clean-up-old-data-when-removing-an-entry)
-10. [Using Different Hash Functions](#using different hash functions)
+10. [Using Different Hash Functions](#using-different-hash-functions)
 
 ## Create a Map
 
