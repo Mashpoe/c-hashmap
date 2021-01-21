@@ -240,7 +240,7 @@ You can free a hashmap's internal data using `hashmap_free()`:
 void hashmap_free(hashmap* map);
 ```
 
-The hashmap does not make copies of the keys that you provide, so make sure you free them properly. If you want to rely solely on the hashmap to do this, then you can use `hashmap_iterate()` to free each key. If you want to free an entry's key and/or value before you removing the entry, you can call `[hashmap_remove_free()](#clean-up-old-data-when-removing-an-entry)`. If you want to free an entry's key and/or value before overwriting the entry, you can call `[hashmap_set_free()](#clean-up-old-data-when-overwriting-an-entry)`.
+The hashmap does not make copies of the keys that you provide, so make sure you free them properly. If you want to rely solely on the hashmap to do this, then you can use `hashmap_iterate()` to free each key. If you want to free an entry's key and/or value before you removing the entry, you can call [hashmap_remove_free()](#clean-up-old-data-when-removing-an-entry). If you want to free an entry's key and/or value before overwriting the entry, you can call [hashmap_set_free()](#clean-up-old-data-when-overwriting-an-entry).
 
 This also applies to freeing any data that's referenced by an entry's `uintptr_t` value.
 
