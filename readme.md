@@ -65,7 +65,7 @@ hashmap_set(m, hashmap_static_arr(numbers), 400);
 
 Both of these macros work for other library calls as well, such as `hashmap_get` or `hashmap_remove`. Just use the macro in place of the `key` and `ksize` arguments.
 
-These macros obviously won't work with pointers (unless you are using **pointer addresses** as keys), so `const char*` or `int*` arrays cannot be used in this way, and you must get the size some other way.
+These macros obviously won't work with pointers (unless you are using **pointer addresses** as keys), so `const char*` or `int*` arrays cannot be used in this way for example, and you must get the size some other way.
 
 For strings, the most simple solution is to use `strlen()`:
 
@@ -80,7 +80,7 @@ Unfortunatley, `strlen()` is an O(n) function, which is not ideal when you're tr
 
 ### Key Lifetime
 
-Keys will not be copied by when adding an entry to the hashmap. If you free the contents of a key that was passed to `hashmap_set()` before you're done using that hashmap, your code will break and your program will most likely crash. If you need to copy a key so it will last for the entire lifetime of the hashmap, you must do that yourself (e.g. using [`strcpy()`](https://en.cppreference.com/w/c/string/byte/strcpy) or [`memcpy()`](https://en.cppreference.com/w/c/string/byte/memcpy)). If you need to free any keys that you copied over to the hashmap, read the "[Cleaning Up](#cleaning-up)" section below.
+Keys will not be copied by when adding an entry to the hashmap. If you free the contents of a key that was passed to `hashmap_set()` before you're done using your hashmap, your code will break and your program will most likely crash. If you need to copy a key so it will last for the entire lifetime of the hashmap, you must do that yourself (e.g. using [`strcpy()`](https://en.cppreference.com/w/c/string/byte/strcpy) or [`memcpy()`](https://en.cppreference.com/w/c/string/byte/memcpy)). If you need to free any keys that you copied over to the hashmap, read the "[Cleaning Up](#cleaning-up)" section below.
 
 ## Getting Values From Keys
 
@@ -108,7 +108,7 @@ else
 }
 ```
 
-`hashmap_get()` returns true if the item was found, and false otherwise. Internally, the hashmap stores `uintptr_t` values alongside your keys because it's an integer type that's guaranteed to be large enough to store pointer types. `uintptr_t` is defined in the C standard as an optional feature (defined in `<stdint.h>`), but it does have pretty widespread support.
+`hashmap_get()` returns `true` if the item was found, and `false` otherwise. Internally, the hashmap stores `uintptr_t` values alongside your keys because it's an integer type that's guaranteed to be large enough to store pointer types. `uintptr_t` is defined in the C standard as an optional feature (defined in `<stdint.h>`), but it does have pretty widespread support.
 
 In the example above, we cast the `uintptr_t` result to an integer so we can print it, but if you're using a hashmap to store pointer addresses, then you can cast it to any pointer type you like.
 
@@ -133,9 +133,9 @@ hashmap_set(m, "hello", 5, x);
 
 ### Optional Entry Setting
 
-In some circumstances, you'll want to get the value of an entry if it exists, but set you own value if the entry doesn't exist.
+In some circumstances, you'll want to get the value of an entry if it exists, but set your own value if the entry doesn't exist.
 
-Normally, this would require two entry lookups, but in some cases you may be able to use this special library function that's able to handle this situation with only one table lookup:
+Normally, this would require two table lookups, but this function can do it with only one:
 
 ```c
 // map, key, key size, and input/output pointer
@@ -156,9 +156,9 @@ hashmap_get_set(m, "hello", 5, &ivalue);
 
 ## Removing Entries
 
-Hashmaps are complicated data structures, and the removal of entries has a few side-effects that require some extra overhead to deal with.
+Hashmaps are complicated data structures, and the removal of entries has a few side effects that require some extra overhead to deal with.
 
-While the overhead won't really slow things down by much, simply having this feature requires some extra checks in order to deal with the effects it has on the internal memory layout of the hashmap, and these checks will have to be made regardless of whether or not you actually remove any elements.
+While the overhead won't really slow things down by much, simply having this feature requires some extra checks because of the effects it has on the internal memory layout of the hashmap, and these checks will have to be made regardless of whether or not you actually remove any elements.
 
 For this reason, entry removal is disabled by default. If you want to enable it, you can uncomment the `#define __HASHMAP_REMOVABLE` line at the top of `map.h`:
 
@@ -229,17 +229,17 @@ Internally, all entries are stored in one continuous chunk of memory alongside e
 
 When the map reaches a certain capacity, it needs to be resized, and the valid entries must be copied to a new chunk of memory. The linked list structure makes this process more efficient because it allows the hashmap to quickly iterate through all valid entries rather than having to check each "bucket" for a valid entry to copy over.
 
-A side effect of using a linked list structure to make resizing more efficient is that it also allows us to iterate over a hashmap's entries in the order they were added at no extra cost!
+A side effect of using a linked list structure is that it also allows us to iterate over a hashmap's entries in the order they were originally added, and this can be done at no extra cost!
 
 ## Cleaning Up
 
-You can free a hashmap's internal data using `hashmap_free()`:
+You can free a hashmap's internal data with `hashmap_free()`:
 
 ```c
 void hashmap_free(hashmap* map);
 ```
 
-The hashmap does not make copies of the keys that you provide, so make sure you free them properly. If you want to rely solely on the hashmap to do this, then you can use `hashmap_iterate()` to free each key. If you want to free an entry's key and/or value before you removing the entry, you can call [`hashmap_remove_free()`](#clean-up-old-data-when-removing-an-entry). If you want to free an entry's key and/or value before overwriting the entry, you can call [`hashmap_set_free()`](#clean-up-old-data-when-overwriting-an-entry).
+The hashmap does not make copies of the keys that you provide, so make sure you free them properly. If you want to rely solely on the hashmap to do this, then you can use [`hashmap_iterate()`](#callbacksiterating-over-elements) to free each key. If you want to free an entry's key and/or value before you removing the entry, you can call [`hashmap_remove_free()`](#clean-up-old-data-when-removing-an-entry). If you want to free an entry's key and/or value before overwriting the entry, you can call [`hashmap_set_free()`](#clean-up-old-data-when-overwriting-an-entry).
 
 This also applies to freeing any data that's referenced by an entry's `uintptr_t` value.
 
@@ -249,14 +249,14 @@ More information on `hashmap_iterate()` can be found in the "[Callbacks/Iteratin
 
 ### Clean up Old Data When Overwriting an Entry
 
-You can use the callback type if you need to free an entry's data before overwriting it:
+You can use a callback to free an entry's data before overwriting it:
 
 ```c
 // map, key, key size, new value, callback, user pointer
 void hashmap_set_free(hashmap* map, void* key, size_t ksize, uintptr_t value, hashmap_callback c, void* usr);
 ```
 
-`hashmap_set_free()` is similar to `hashmap_set()`, but when overwriting an entry, you'll be able properly free the old entry's data via a callback. unlike `hashmap_set()`, this function will overwrite the original key pointer, which means you can free the old key in the callback if applicable.
+`hashmap_set_free()` is similar to `hashmap_set()`, but when overwriting an entry, you'll be able properly free the old entry's data via a callback. Unlike `hashmap_set()`, this function will overwrite the original key pointer, which means you can free the old key in the callback if applicable.
 
 Example using `hashmap_set_free()`:
 
@@ -288,7 +288,7 @@ More information on using callbacks can be found in the "[Callbacks/Iterating Ov
 
 ### Clean up Old Data When Removing an Entry
 
-You can use the callback type if you want free an entry's data before removing it. You don't necessarily *have* to use this callback to free data, but that's its primary function.
+You can use a callback to free an entry's data before removing it. You don't necessarily *have* to use this callback to free data, but that's its primary function.
 
 This can be done using `hashmap_remove_free()`:
 
