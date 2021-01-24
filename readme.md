@@ -63,7 +63,7 @@ int numbers[] = {1, 2, 3, 4, 5};
 hashmap_set(m, hashmap_static_arr(numbers), 400);
 ```
 
-Both of these macros work for other library calls as well, such as `hashmap_get` or `hashmap_remove`. Just use the macro in place of the `key` and `ksize` arguments.
+Both of these macros work for other library calls as well, such as `hashmap_get()` or `hashmap_remove()`. Just use the macro in place of the `key` and `ksize` arguments.
 
 These macros obviously won't work with pointers (unless you are using **pointer addresses** as keys), so `const char*` or `int*` arrays cannot be used in this way for example, and you must get the size some other way.
 
