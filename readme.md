@@ -14,7 +14,6 @@ A fast hash map/hash table (whatever you want to call it) for the C programming 
 7. [Cleaning Up](#cleaning-up)
 8. [Clean up Old Data When Overwriting an Entry](#clean-up-old-data-when-overwriting-an-entry)
 9. [Clean up Old Data When Removing an Entry](#clean-up-old-data-when-removing-an-entry)
-10. [Using Different Hash Functions](#using-different-hash-functions)
 
 ## Create a Map
 
@@ -324,25 +323,3 @@ hashmap_remove_free(m, "hello", 5, free_map_entry, NULL);
 ```
 
 More information on using callbacks can be found in the "[Callbacks/Iterating Over Elements](#callbacksiterating-over-elements)" section above.
-
-## Using Different Hash Functions
-
-You may want to use a different hash function depending on the requirements of your project. There are a few built-in hash functions to choose from, and all you have to do to switch the hash function that your hashmap will use is change a macro definition in `map.h`:
-
-```c
-// pick a hash function from the list below:
-#define __HASH_FUNCTION 1
-/* AVAILABLE HASH FUNCTIONS:
-
-0: FNV-1a
-
-1: Jenkins one_at_a_time Hash Function
-
-2: adaptation of Java's HashMap String and hash functions
-
-3: Pearson hashing
-
-4: djb2
-
-*/
-```

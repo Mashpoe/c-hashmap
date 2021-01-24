@@ -10,25 +10,9 @@
 #define hashmap_str_lit(str) (str), sizeof(str) - 1
 #define hashmap_static_arr(arr) (arr), sizeof(arr)
 
-// removal of map elements is disabled by default because of slight overhead.
+// removal of map elements is disabled by default because of its slight overhead.
 // if you want to enable this feature, uncomment the line below:
 //#define __HASHMAP_REMOVABLE
-
-// pick a hash function from the list below:
-#define __HASH_FUNCTION 1
-/* AVAILABLE HASH FUNCTIONS:
-
-0: FNV-1a
-
-1: Jenkins one_at_a_time Hash Function
-
-2: adaptation of Java's HashMap String and hash functions
-
-3: Pearson hashing
-
-4: djb2
-
-*/
 
 #include <stdint.h>
 #include <stdbool.h>
