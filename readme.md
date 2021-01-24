@@ -25,7 +25,7 @@ hashmap* m = hashmap_create();
 
 ## Proper Usage of Keys
 
-You can use any string of bytes as a key, since hashmap keys are binary-safe. This is because a user might want to hash something other than a null-terminated `char` array.
+You can use any string of bytes as a key since hashmap keys are binary-safe. This is because a user might want to hash something other than a null-terminated `char` array.
 
 Consequently, you must pass the size of the key yourself when you're setting, accessing, or removing an entry from a hashmap:
 
@@ -54,7 +54,7 @@ char ch_arr[] = "bar";
 hashmap_set(m, hashmap_str_lit(ch_arr), 400);
 ```
 
-The macro `hashmap_static_arr(arr)` does the same thing but with static arrays (or anything that's stored on the stack). The only difference is that it won't subtract from the size to account for a null terminator:
+The macro `hashmap_static_arr(arr)` does the same thing, but with static arrays (or anything that's stored on the stack). The only difference is that it won't subtract from the size to account for a null terminator:
 
 ```c
 int numbers[] = {1, 2, 3, 4, 5};
@@ -80,7 +80,7 @@ Unfortunatley, `strlen()` is an O(n) function, which is not ideal when you're tr
 
 ### Key Lifetime
 
-Keys will not be copied by when adding an entry to the hashmap. If you free the contents of a key that was passed to `hashmap_set()` before you're done using your hashmap, your code will break and your program will most likely crash. If you need to copy a key so it will last for the entire lifetime of the hashmap, you must do that yourself (e.g. using [`strcpy()`](https://en.cppreference.com/w/c/string/byte/strcpy) or [`memcpy()`](https://en.cppreference.com/w/c/string/byte/memcpy)). If you need to free any keys that you copied over to the hashmap, read the "[Cleaning Up](#cleaning-up)" section below.
+Keys will not be copied by when adding an entry to the hashmap. It's unsafe to free the contents of a key that was passed to `hashmap_set()` before you're done using a hashmap. If you need to copy a key so it will last for the entire lifetime of the hashmap, you must do that yourself (e.g. using [`strcpy()`](https://en.cppreference.com/w/c/string/byte/strcpy) or [`memcpy()`](https://en.cppreference.com/w/c/string/byte/memcpy)). If you need to free any keys that you copied over to the hashmap, read the "[Cleaning Up](#cleaning-up)" section below.
 
 ## Getting Values From Keys
 
@@ -135,7 +135,7 @@ hashmap_set(m, "hello", 5, x);
 
 In some circumstances, you'll want to get the value of an entry if it exists, but set your own value if the entry doesn't exist.
 
-Normally, this would require two table lookups, but this function can do it with only one:
+Normally, this would require two table lookups, but this function can do it with just one:
 
 ```c
 // map, key, key size, and input/output pointer
@@ -158,7 +158,7 @@ hashmap_get_set(m, "hello", 5, &ivalue);
 
 Hashmaps are complicated data structures, and the removal of entries has a few side effects that require some extra overhead to deal with.
 
-While the overhead won't really slow things down by much, simply having this feature requires some extra checks because of the effects it has on the internal memory layout of the hashmap, and these checks will have to be made regardless of whether or not you actually remove any elements.
+While the overhead won't really slow things down by much, simply having this feature requires some extra checks because of the side effects it has on the internal memory layout of the hashmap, and these checks will have to be made regardless of whether or not you actually remove any elements.
 
 For this reason, entry removal is disabled by default. If you want to enable it, you can uncomment the `#define __HASHMAP_REMOVABLE` line at the top of `map.h`:
 
@@ -239,7 +239,7 @@ You can free a hashmap's internal data with `hashmap_free()`:
 void hashmap_free(hashmap* map);
 ```
 
-The hashmap does not make copies of the keys that you provide, so make sure you free them properly. If you want to rely solely on the hashmap to do this, then you can use [`hashmap_iterate()`](#callbacksiterating-over-elements) to free each key. If you want to free an entry's key and/or value before you removing the entry, you can call [`hashmap_remove_free()`](#clean-up-old-data-when-removing-an-entry). If you want to free an entry's key and/or value before overwriting the entry, you can call [`hashmap_set_free()`](#clean-up-old-data-when-overwriting-an-entry).
+The hashmap does not make copies of the keys that you provide, so make sure you free them properly. If you want to rely solely on the hashmap to do this, then you can use [`hashmap_iterate()`](#callbacksiterating-over-elements) to free each key. If you want to free an entry's key and/or value before removing the entry, you can call [`hashmap_remove_free()`](#clean-up-old-data-when-removing-an-entry). If you want to free an entry's key and/or value before overwriting the entry, you can call [`hashmap_set_free()`](#clean-up-old-data-when-overwriting-an-entry).
 
 This also applies to freeing any data that's referenced by an entry's `uintptr_t` value.
 
