@@ -354,6 +354,39 @@ void hashmap_iterate(hashmap* m, hashmap_callback c, void* user_ptr)
 	}
 }
 
+void ** hashmap_get_same_values(hashmap * m, uintptr_t value){
+
+	struct bucket* current = m->first;
+	
+	int co = 0;
+
+	int sk = 1; // size of keys array 
+	void ** keys = malloc(sizeof(void*)* sk);
+
+	while (current != NULL)
+	{
+		#ifdef __HASHMAP_REMOVABLE
+		// "tombstone" check
+		if (current->key != NULL)
+		#endif
+			
+		//we check and store the key
+		if(current->value == value){
+			keys[sk-1] = current->key;
+			sk++;
+			keys = realloc(keys, sizeof(void*) * sk);
+		}
+		current = current->next;
+
+		if (co > 1000)
+		{
+			break;
+		}
+		co++;
+
+	}
+	return keys;
+}
 /*void bucket_dump(hashmap* m)
 {
 	for (int i = 0; i < m->capacity; i++)

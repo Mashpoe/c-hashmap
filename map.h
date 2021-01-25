@@ -67,6 +67,10 @@ int hashmap_size(hashmap* map);
 // the element's key, key size, value, and `usr` will be passed to `c`.
 void hashmap_iterate(hashmap* map, hashmap_callback c, void* usr);
 
+// get all enteries that have the same values returned as an array of keys
+// it actually iterates the whole map as hashmap_iterate does.
+void ** hashmap_get_same_values(hashmap * m, uintptr_t value);
+
 // dumps bucket info for debugging.
 // allows you to see how many collisions you are getting.
 // `0` is an empty bucket, `1` is occupied, and `x` is removed.
