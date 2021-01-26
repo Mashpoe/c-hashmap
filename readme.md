@@ -36,7 +36,7 @@ hashmap_set(m, "hello", sizeof("hello") - 1, 400); // `- 1` if you want to ignor
 
 In the example above, the compiler will treat `sizeof("hello") - 1` as the constant `4`, which will have zero runtime overhead. This is an example of the freedom you get from passing in the length of a key yourself.
 
-You can use the macro `hashmap_str_lit(str)` to simplify the usage string literal keys:
+You can use the macro `hashmap_str_lit(str)` to simplify the usage of string literal keys:
 
 ```c
 // expands to `hashmap_set(m, "foo", 3, 400);`
