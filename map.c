@@ -167,7 +167,7 @@ static inline uint32_t hash_data(const unsigned char* data, size_t size)
 	return hash ^ hash >> 32;
 }
 
-static struct bucket* find_entry(hashmap* m, void* key, size_t ksize, uint32_t hash)
+static struct bucket* find_entry(hashmap* m, const void* key, size_t ksize, uint32_t hash)
 {
 	uint32_t index = hash % m->capacity;
 
@@ -292,7 +292,7 @@ void hashmap_set_free(hashmap* m, void* key, size_t ksize, uintptr_t val, hashma
 	entry->value = val;
 }
 
-bool hashmap_get(hashmap* m, void* key, size_t ksize, uintptr_t* out_val)
+bool hashmap_get(hashmap* m, const void* key, size_t ksize, uintptr_t* out_val)
 {
 	uint32_t hash = hash_data(key, ksize);
 	struct bucket* entry = find_entry(m, key, ksize, hash);
@@ -306,7 +306,7 @@ bool hashmap_get(hashmap* m, void* key, size_t ksize, uintptr_t* out_val)
 #ifdef __HASHMAP_REMOVABLE
 // doesn't "remove" the element per se, but it will be ignored.
 // the element will eventually be removed when the map is resized.
-void hashmap_remove(hashmap* m, void* key, size_t ksize)
+void hashmap_remove(hashmap* m, const void* key, size_t ksize)
 {
 	uint32_t hash = hash_data(key, ksize);
 	struct bucket* entry = find_entry(m, key, ksize, hash);
@@ -323,7 +323,7 @@ void hashmap_remove(hashmap* m, void* key, size_t ksize)
 	}
 }
 
-void hashmap_remove_free(hashmap* m, void* key, size_t ksize, hashmap_callback c, void* usr)
+void hashmap_remove_free(hashmap* m, const void* key, size_t ksize, hashmap_callback c, void* usr)
 {
 	uint32_t hash = hash_data(key, ksize);
 	struct bucket* entry = find_entry(m, key, ksize, hash);
