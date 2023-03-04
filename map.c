@@ -20,7 +20,7 @@ struct bucket
 	struct bucket* next;
 
 	// key, key size, key hash, and associated value
-	void* key;
+	const void* key;
 	size_t ksize;
 	uint32_t hash;
 	uintptr_t value;
@@ -46,6 +46,11 @@ struct hashmap
 hashmap* hashmap_create(void)
 {
 	hashmap* m = malloc(sizeof(hashmap));
+	if (m == NULL)
+	{
+		return NULL;
+	}
+
 	m->capacity = HASHMAP_DEFAULT_CAPACITY;
 	m->count = 0;
 	
@@ -164,7 +169,7 @@ static inline uint32_t hash_data(const unsigned char* data, size_t size)
 
 	// compress to a 32-bit result.
 	// also serves as a finalizer.
-	return hash ^ hash >> 32;
+	return (uint32_t)(hash ^ hash >> 32);
 }
 
 static struct bucket* find_entry(hashmap* m, const void* key, size_t ksize, uint32_t hash)
@@ -212,7 +217,7 @@ static struct bucket* find_entry(hashmap* m, const void* key, size_t ksize, uint
 	}
 }
 
-void hashmap_set(hashmap* m, void* key, size_t ksize, uintptr_t val)
+void hashmap_set(hashmap* m, const void* key, size_t ksize, uintptr_t val)
 {
 	if (m->count + 1 > HASHMAP_MAX_LOAD * m->capacity)
 		hashmap_resize(m);
@@ -234,7 +239,7 @@ void hashmap_set(hashmap* m, void* key, size_t ksize, uintptr_t val)
 	entry->value = val;
 }
 
-bool hashmap_get_set(hashmap* m, void* key, size_t ksize, uintptr_t* out_in)
+bool hashmap_get_set(hashmap* m, const void* key, size_t ksize, uintptr_t* out_in)
 {
 	if (m->count + 1 > HASHMAP_MAX_LOAD * m->capacity)
 		hashmap_resize(m);
@@ -260,7 +265,7 @@ bool hashmap_get_set(hashmap* m, void* key, size_t ksize, uintptr_t* out_in)
 	return true;
 }
 
-void hashmap_set_free(hashmap* m, void* key, size_t ksize, uintptr_t val, hashmap_callback c, void* usr)
+void hashmap_set_free(hashmap* m, const void* key, size_t ksize, uintptr_t val, hashmap_callback c, void* usr)
 {
 	if (m->count + 1 > HASHMAP_MAX_LOAD * m->capacity)
 		hashmap_resize(m);
@@ -285,7 +290,7 @@ void hashmap_set_free(hashmap* m, void* key, size_t ksize, uintptr_t val, hashma
 	// allow the callback to free entry data.
 	// use old key and value so the callback can free them.
 	// the old key and value will be overwritten after this call.
-	c(entry->key, ksize, entry->value, usr);
+	c((void*)entry->key, ksize, entry->value, usr);
 
 	// overwrite the old key pointer in case the callback frees it.
 	entry->key = key;
@@ -330,7 +335,7 @@ void hashmap_remove_free(hashmap* m, const void* key, size_t ksize, hashmap_call
 
 	if (entry->key != NULL)
 	{
-		c(entry->key, entry->ksize, entry->value, usr);
+		c((void*)entry->key, entry->ksize, entry->value, usr);
 		
 		// "tombstone" entry is signified by a NULL key with a nonzero value
 		// element removal is optional because of the overhead of tombstone checks
@@ -366,7 +371,7 @@ void hashmap_iterate(hashmap* m, hashmap_callback c, void* user_ptr)
 		// "tombstone" check
 		if (current->key != NULL)
 		#endif
-			c(current->key, current->ksize, current->value, user_ptr);
+			c((void*)current->key, current->ksize, current->value, user_ptr);
 		
 		current = current->next;
 
