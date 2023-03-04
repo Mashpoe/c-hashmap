@@ -51,13 +51,13 @@ bool hashmap_get_set(hashmap* map, void* key, size_t ksize, uintptr_t* out_in);
 // which means you can free the old key in the callback if applicable.
 void hashmap_set_free(hashmap* map, void* key, size_t ksize, uintptr_t value, hashmap_callback c, void* usr);
 
-bool hashmap_get(hashmap* map, void* key, size_t ksize, uintptr_t* out_val);
+bool hashmap_get(hashmap* map, const void* key, size_t ksize, uintptr_t* out_val);
 
 #ifdef __HASHMAP_REMOVABLE
-void hashmap_remove(hashmap *map, void *key, size_t ksize);
+void hashmap_remove(hashmap *map, const void *key, size_t ksize);
 
 // same as `hashmap_remove()`, but it allows you to free an entry's data first via a callback.
-void hashmap_remove_free(hashmap* m, void* key, size_t ksize, hashmap_callback c, void* usr);
+void hashmap_remove_free(hashmap* m, const void* key, size_t ksize, hashmap_callback c, void* usr);
 #endif
 
 int hashmap_size(hashmap* map);
