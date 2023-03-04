@@ -80,7 +80,7 @@ Unfortunatley, `strlen()` is an O(n) function, which is not ideal when you're tr
 
 ### Key Lifetime
 
-Keys will not be copied when adding an entry to the hashmap. It's unsafe to free the contents of a key that was passed to `hashmap_set()` before you're done using a hashmap. If you need to copy a key so it will last for the entire lifetime of the hashmap, you must do that yourself (e.g. using [`strcpy()`](https://en.cppreference.com/w/c/string/byte/strcpy) or [`memcpy()`](https://en.cppreference.com/w/c/string/byte/memcpy)). If you need to free any keys that you copied over to the hashmap, read the "[Cleaning Up](#cleaning-up)" section below.
+Keys will not be copied when adding an entry to the hashmap. It's unsafe to free a key that is currently being used in a hashmap entry. If you need to copy a key so it will last for the entire lifetime of the hashmap, you must do that yourself (e.g. using [`strcpy()`](https://en.cppreference.com/w/c/string/byte/strcpy) or [`memcpy()`](https://en.cppreference.com/w/c/string/byte/memcpy)). If you need to free any keys that you copied over to the hashmap, read the "[Cleaning Up](#cleaning-up)" section below.
 
 ## Getting Values From Keys
 
