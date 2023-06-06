@@ -363,8 +363,6 @@ void hashmap_iterate(hashmap* m, hashmap_callback c, void* user_ptr)
 	// this way we can skip over empty buckets
 	struct bucket* current = m->first;
 	
-	int co = 0;
-
 	while (current != NULL)
 	{
 		#ifdef __HASHMAP_REMOVABLE
@@ -374,13 +372,6 @@ void hashmap_iterate(hashmap* m, hashmap_callback c, void* user_ptr)
 			c((void*)current->key, current->ksize, current->value, user_ptr);
 		
 		current = current->next;
-
-		if (co > 1000)
-		{
-			break;
-		}
-		co++;
-
 	}
 }
 
