@@ -17,6 +17,37 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <string.h>
+
+struct bucket
+{
+	// `next` must be the first struct element.
+	// changing the order will break multiple functions
+	struct bucket* next;
+
+	// key, key size, key hash, and associated value
+	const void* key;
+	size_t ksize;
+	uint32_t hash;
+	uintptr_t value;
+};
+
+struct hashmap
+{
+	struct bucket* buckets;
+	int capacity;
+	int count;
+
+	#ifdef __HASHMAP_REMOVABLE
+	// "tombstones" are empty buckets from removing elements 
+	int tombstone_count;
+	#endif
+
+	// a linked list of all valid entries, in order
+	struct bucket* first;
+	// lets us know where to add the next element
+	struct bucket* last;
+};
 
 // hashmaps can associate keys with pointer values or integral types.
 typedef struct hashmap hashmap;
@@ -28,10 +59,17 @@ typedef void (*hashmap_callback)(void *key, size_t ksize, uintptr_t value, void 
 
 hashmap* hashmap_create(void);
 
+// if you alloc hashmap object yourself or have one on the stack
+// you can use this function to initialize it.
+int hashmap_init(hashmap *m);
+
 // only frees the hashmap object and buckets.
 // does not call free on each element's `key` or `value`.
 // to free data associated with an element, call `hashmap_iterate`.
 void hashmap_free(hashmap* map);
+
+// only frees the buckets
+void hashmap_deinit(hashmap *m);
 
 // does not make a copy of `key`.
 // you must copy it yourself if you want to guarantee its lifetime,
@@ -65,11 +103,49 @@ int hashmap_size(hashmap* map);
 // iterate over the map, calling `c` on every element.
 // goes through elements in the order they were added.
 // the element's key, key size, value, and `usr` will be passed to `c`.
-void hashmap_iterate(hashmap* map, hashmap_callback c, void* usr);
+inline static void hashmap_iterate(hashmap* m, hashmap_callback c, void* user_ptr)
+{
+	// loop through the linked list of valid entries
+	// this way we can skip over empty buckets
+	struct bucket* current = m->first;
+
+	while (current != NULL)
+	{
+		#ifdef __HASHMAP_REMOVABLE
+		// "tombstone" check
+		if (current->key != NULL)
+		#endif
+			c((void*)current->key, current->ksize, current->value, user_ptr);
+
+		current = current->next;
+	}
+}
 
 // dumps bucket info for debugging.
 // allows you to see how many collisions you are getting.
 // `0` is an empty bucket, `1` is occupied, and `x` is removed.
 //void bucket_dump(hashmap *m);
+
+#ifdef __HASHMAP_REMOVABLE
+	#define __HASHMAP_REMOVABLE_CHECK if (cur->key == NULL) continue
+#else
+	#define __HASHMAP_REMOVABLE_CHECK do {} while(0)
+#endif
+
+#define hashmap_foreach(a_map, a_key, a_ksize, a_value, a_code) \
+	{\
+		for (struct bucket *cur = (a_map)->first; cur != NULL; cur = cur->next) {\
+			__HASHMAP_REMOVABLE_CHECK; \
+			const void *(a_key) = cur->key; \
+			size_t (a_ksize) = cur->ksize; \
+			uintptr_t (a_value) = cur->value; \
+			(void) (a_key); \
+			(void) (a_ksize); \
+			(void) (a_value); \
+			a_code \
+		} \
+	}
+
+
 
 #endif // map_h

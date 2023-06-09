@@ -6,51 +6,14 @@
 
 #include "map.h"
 #include <stdlib.h>
-#include <string.h>
 //#include <stdio.h>
 
 #define HASHMAP_DEFAULT_CAPACITY 20
 #define HASHMAP_MAX_LOAD 0.75f
 #define HASHMAP_RESIZE_FACTOR 2
 
-struct bucket
+int hashmap_init(hashmap *m)
 {
-	// `next` must be the first struct element.
-	// changing the order will break multiple functions
-	struct bucket* next;
-
-	// key, key size, key hash, and associated value
-	const void* key;
-	size_t ksize;
-	uint32_t hash;
-	uintptr_t value;
-};
-
-struct hashmap
-{
-	struct bucket* buckets;
-	int capacity;
-	int count;
-
-	#ifdef __HASHMAP_REMOVABLE
-	// "tombstones" are empty buckets from removing elements 
-	int tombstone_count;
-	#endif
-
-	// a linked list of all valid entries, in order
-	struct bucket* first;
-	// lets us know where to add the next element
-	struct bucket* last;
-};
-
-hashmap* hashmap_create(void)
-{
-	hashmap* m = malloc(sizeof(hashmap));
-	if (m == NULL)
-	{
-		return NULL;
-	}
-
 	m->capacity = HASHMAP_DEFAULT_CAPACITY;
 	m->count = 0;
 	
@@ -65,6 +28,18 @@ hashmap* hashmap_create(void)
 	// m->first will be treated as the "next" pointer in an imaginary bucket.
 	// when the first item is added, m->first will be set to the correct address.
 	m->last = (struct bucket*)&m->first;
+	return 0;
+}
+
+hashmap* hashmap_create(void)
+{
+	hashmap* m = malloc(sizeof(hashmap));
+	if (m == NULL)
+	{
+		return NULL;
+	}
+	hashmap_init(m);
+
 	return m;
 }
 
@@ -72,6 +47,11 @@ void hashmap_free(hashmap* m)
 {
 	free(m->buckets);
 	free(m);
+}
+
+void hashmap_deinit(hashmap *m)
+{
+    free(m->buckets);
 }
 
 // puts an old bucket into a resized hashmap
@@ -355,24 +335,6 @@ int hashmap_size(hashmap* m)
 	#else
 	return m->count;
 	#endif
-}
-
-void hashmap_iterate(hashmap* m, hashmap_callback c, void* user_ptr)
-{
-	// loop through the linked list of valid entries
-	// this way we can skip over empty buckets
-	struct bucket* current = m->first;
-	
-	while (current != NULL)
-	{
-		#ifdef __HASHMAP_REMOVABLE
-		// "tombstone" check
-		if (current->key != NULL)
-		#endif
-			c((void*)current->key, current->ksize, current->value, user_ptr);
-		
-		current = current->next;
-	}
 }
 
 /*void bucket_dump(hashmap* m)
