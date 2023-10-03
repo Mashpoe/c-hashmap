@@ -217,6 +217,10 @@ static struct bucket* find_entry(hashmap* m, const void* key, size_t ksize, uint
 	}
 }
 
+bool hashmap_full(hashmap* m) {
+	return m->count + 2 > HASHMAP_MAX_LOAD * m->capacity;
+}
+
 void hashmap_set(hashmap* m, const void* key, size_t ksize, uintptr_t val)
 {
 	if (m->count + 1 > HASHMAP_MAX_LOAD * m->capacity)

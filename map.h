@@ -33,6 +33,12 @@ hashmap* hashmap_create(void);
 // to free data associated with an element, call `hashmap_iterate`.
 void hashmap_free(hashmap* map);
 
+// returns true if the next after next set (init and update)
+// results in a resize else false
+// an update can result in a resize if the next init would need it
+// thus this returning true allows to still update without resize
+bool hashmap_full(hashmap* map);
+
 // does not make a copy of `key`.
 // you must copy it yourself if you want to guarantee its lifetime,
 // or if you intend to call `hashmap_key_free`.
