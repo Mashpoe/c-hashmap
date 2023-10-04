@@ -217,9 +217,14 @@ static struct bucket* find_entry(hashmap* m, const void* key, size_t ksize, uint
 	}
 }
 
+int hashmap_sets_left_before_resize(hashmap* m)
+{
+	return (int)(HASHMAP_MAX_LOAD * m->capacity) - m->count;
+}
+
 void hashmap_set(hashmap* m, const void* key, size_t ksize, uintptr_t val)
 {
-	if (m->count + 1 > HASHMAP_MAX_LOAD * m->capacity)
+	if (hashmap_sets_left_before_resize(m) <= 0)
 		hashmap_resize(m);
 
 	uint32_t hash = hash_data(key, ksize);
@@ -241,7 +246,7 @@ void hashmap_set(hashmap* m, const void* key, size_t ksize, uintptr_t val)
 
 bool hashmap_get_set(hashmap* m, const void* key, size_t ksize, uintptr_t* out_in)
 {
-	if (m->count + 1 > HASHMAP_MAX_LOAD * m->capacity)
+	if (hashmap_sets_left_before_resize(m) <= 0)
 		hashmap_resize(m);
 
 	uint32_t hash = hash_data(key, ksize);
@@ -267,7 +272,7 @@ bool hashmap_get_set(hashmap* m, const void* key, size_t ksize, uintptr_t* out_i
 
 void hashmap_set_free(hashmap* m, const void* key, size_t ksize, uintptr_t val, hashmap_callback c, void* usr)
 {
-	if (m->count + 1 > HASHMAP_MAX_LOAD * m->capacity)
+	if (hashmap_sets_left_before_resize(m) <= 0)
 		hashmap_resize(m);
 
 	uint32_t hash = hash_data(key, ksize);
