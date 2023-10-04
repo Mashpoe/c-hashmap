@@ -33,11 +33,13 @@ hashmap* hashmap_create(void);
 // to free data associated with an element, call `hashmap_iterate`.
 void hashmap_free(hashmap* map);
 
-// returns true if the next after next set (init and update)
-// results in a resize else false
-// an update can result in a resize if the next init would need it
-// thus this returning true allows to still update without resize
-bool hashmap_full(hashmap* map);
+// returns number of sets which can still occur without the map getting resized
+// 0 means the next set will trigger a resize
+// note a set which only updates an existing keys value triggers a resize too
+// if this returns 0
+// this can return < 0 for certain conditions like (compile-time) HASHMAP_MAX_LOAD = 0.1f,
+// HASHMAP_RESIZE_FACTOR = 1.2f and HASHMAP_DEFAULT_CAPACITY = 8
+int hashmap_sets_left_before_resize(hashmap* map);
 
 // does not make a copy of `key`.
 // you must copy it yourself if you want to guarantee its lifetime,
