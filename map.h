@@ -7,6 +7,10 @@
 #ifndef map_h
 #define map_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 #define hashmap_str_lit(str) (str), sizeof(str) - 1
 #define hashmap_static_arr(arr) (arr), sizeof(arr)
 
@@ -71,5 +75,9 @@ void hashmap_iterate(hashmap* map, hashmap_callback c, void* usr);
 // allows you to see how many collisions you are getting.
 // `0` is an empty bucket, `1` is occupied, and `x` is removed.
 //void bucket_dump(hashmap *m);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
 
 #endif // map_h

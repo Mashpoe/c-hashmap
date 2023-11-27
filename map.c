@@ -45,7 +45,7 @@ struct hashmap
 
 hashmap* hashmap_create(void)
 {
-	hashmap* m = malloc(sizeof(hashmap));
+	hashmap* m = (hashmap*)malloc(sizeof(hashmap));
 	if (m == NULL)
 	{
 		return NULL;
@@ -58,7 +58,7 @@ hashmap* hashmap_create(void)
 	m->tombstone_count = 0;
 	#endif
 
-	m->buckets = calloc(HASHMAP_DEFAULT_CAPACITY, sizeof(struct bucket));
+	m->buckets = (struct bucket*)calloc(HASHMAP_DEFAULT_CAPACITY, sizeof(struct bucket));
 	m->first = NULL;
 
 	// this prevents branching in hashmap_set.
@@ -98,7 +98,7 @@ static void hashmap_resize(hashmap* m)
 
 	m->capacity *= HASHMAP_RESIZE_FACTOR;
 	// initializes all bucket fields to null
-	m->buckets = calloc(m->capacity, sizeof(struct bucket));
+	m->buckets = (struct bucket*)calloc(m->capacity, sizeof(struct bucket));
 
 	// same trick; avoids branching
 	m->last = (struct bucket*)&m->first;
@@ -222,7 +222,7 @@ void hashmap_set(hashmap* m, const void* key, size_t ksize, uintptr_t val)
 	if (m->count + 1 > HASHMAP_MAX_LOAD * m->capacity)
 		hashmap_resize(m);
 
-	uint32_t hash = hash_data(key, ksize);
+	uint32_t hash = hash_data((const unsigned char*)key, ksize);
 	struct bucket* entry = find_entry(m, key, ksize, hash);
 	if (entry->key == NULL)
 	{
@@ -244,7 +244,7 @@ bool hashmap_get_set(hashmap* m, const void* key, size_t ksize, uintptr_t* out_i
 	if (m->count + 1 > HASHMAP_MAX_LOAD * m->capacity)
 		hashmap_resize(m);
 
-	uint32_t hash = hash_data(key, ksize);
+	uint32_t hash = hash_data((const unsigned char*)key, ksize);
 	struct bucket* entry = find_entry(m, key, ksize, hash);
 	if (entry->key == NULL)
 	{
@@ -270,7 +270,7 @@ void hashmap_set_free(hashmap* m, const void* key, size_t ksize, uintptr_t val, 
 	if (m->count + 1 > HASHMAP_MAX_LOAD * m->capacity)
 		hashmap_resize(m);
 
-	uint32_t hash = hash_data(key, ksize);
+	uint32_t hash = hash_data((const unsigned char*)key, ksize);
 	struct bucket *entry = find_entry(m, key, ksize, hash);
 	if (entry->key == NULL)
 	{
@@ -299,7 +299,7 @@ void hashmap_set_free(hashmap* m, const void* key, size_t ksize, uintptr_t val, 
 
 bool hashmap_get(hashmap* m, const void* key, size_t ksize, uintptr_t* out_val)
 {
-	uint32_t hash = hash_data(key, ksize);
+	uint32_t hash = hash_data((const unsigned char*)key, ksize);
 	struct bucket* entry = find_entry(m, key, ksize, hash);
 
 	// if there is no match, output val will just be NULL
