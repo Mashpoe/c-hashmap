@@ -13,6 +13,10 @@
 #define HASHMAP_MAX_LOAD 0.75f
 #define HASHMAP_RESIZE_FACTOR 2
 
+#ifndef __UNCONST
+#define __UNCONST(a) ((void *)(unsigned long)(const void *)(a))
+#endif
+
 struct bucket
 {
 	// `next` must be the first struct element.
@@ -290,7 +294,7 @@ void hashmap_set_free(hashmap* m, const void* key, size_t ksize, uintptr_t val, 
 	// allow the callback to free entry data.
 	// use old key and value so the callback can free them.
 	// the old key and value will be overwritten after this call.
-	c((void*)entry->key, ksize, entry->value, usr);
+	c(__UNCONST(entry->key), ksize, entry->value, usr);
 
 	// overwrite the old key pointer in case the callback frees it.
 	entry->key = key;
@@ -335,7 +339,7 @@ void hashmap_remove_free(hashmap* m, const void* key, size_t ksize, hashmap_call
 
 	if (entry->key != NULL)
 	{
-		c((void*)entry->key, entry->ksize, entry->value, usr);
+		c(__UNCONST(entry->key), entry->ksize, entry->value, usr);
 		
 		// "tombstone" entry is signified by a NULL key with a nonzero value
 		// element removal is optional because of the overhead of tombstone checks
@@ -369,7 +373,7 @@ void hashmap_iterate(hashmap* m, hashmap_callback c, void* user_ptr)
 		// "tombstone" check
 		if (current->key != NULL)
 		#endif
-			c((void*)current->key, current->ksize, current->value, user_ptr);
+			c(__UNCONST(current->key), current->ksize, current->value, user_ptr);
 		
 		current = current->next;
 	}
