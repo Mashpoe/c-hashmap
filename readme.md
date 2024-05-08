@@ -30,8 +30,12 @@ You can use any string of bytes as a key since hashmap keys are binary-safe. Thi
 Consequently, you must pass the size of the key yourself when you're setting, accessing, or removing an entry from a hashmap:
 
 ```c
+int error;
+
 // associates the value `400` with the key "hello"
-hashmap_set(m, "hello", sizeof("hello") - 1, 400); // `- 1` if you want to ignore the null terminator
+error = hashmap_set(m, "hello", sizeof("hello") - 1, 400); // `- 1` if you want to ignore the null terminator
+if (error == -1)
+    fprintf(stderr, "hashmap_set: %s\n", strerror(errno));
 ```
 
 In the example above, the compiler will treat `sizeof("hello") - 1` as the constant `4`, which will have zero runtime overhead. This is an example of the freedom you get from passing in the length of a key yourself.
@@ -39,28 +43,36 @@ In the example above, the compiler will treat `sizeof("hello") - 1` as the const
 You can use the macro `hashmap_str_lit(str)` to simplify the usage of string literal keys:
 
 ```c
-// expands to `hashmap_set(m, "foo", 3, 400);`
-hashmap_set(m, hashmap_str_lit("foo"), 400);
+int error;
 
+// expands to `hashmap_set(m, "foo", 3, 400);`
+error = hashmap_set(m, hashmap_str_lit("foo"), 400);
+if (error == -1)
+    fprintf(stderr, "hashmap_set: %s\n", strerror(errno));
 /*
 
 -or-
 
 */
+int error;
 
 // can also be used with static char arrays
 char ch_arr[] = "bar";
 
-hashmap_set(m, hashmap_str_lit(ch_arr), 400);
+error = hashmap_set(m, hashmap_str_lit(ch_arr), 400);
+if (error == -1)
+    fprintf(stderr, "hashmap_set: %s\n", strerror(errno));
 ```
 
 The macro `hashmap_static_arr(arr)` does the same thing, but with static arrays (or anything that's stored on the stack). The only difference is that it won't subtract from the size to account for a null terminator:
 
 ```c
-int numbers[] = {1, 2, 3, 4, 5};
+int error, numbers[] = {1, 2, 3, 4, 5};
 
 // expands to `hashmap_set(m, numbers, 5, 400);`
-hashmap_set(m, hashmap_static_arr(numbers), 400);
+error = hashmap_set(m, hashmap_static_arr(numbers), 400);
+if (error == -1)
+    fprintf(stderr, "hashmap_set: %s\n", strerror(errno));
 ```
 
 Both of these macros work for other library calls as well, such as `hashmap_get()` or `hashmap_remove()`. Just use the macro in place of the `key` and `ksize` arguments.
@@ -70,10 +82,14 @@ These macros obviously won't work with pointers (unless you are using **pointer 
 For strings, the most simple solution is to use `strlen()`:
 
 ```c
+int error;
+
 // `get_str()` is a made-up function that returns a heap-allocated string.
 const char* str = get_str();
 
-hashmap_set(m, str, strlen(str), 400);
+error = hashmap_set(m, str, strlen(str), 400);
+if (error == -1)
+    fprintf(stderr, "hashmap_set: %s\n", strerror(errno));
 ```
 
 Unfortunatley, `strlen()` is an O(n) function, which is not ideal when you're trying to save time with hashmaps. If possible, try storing the length of your keys upon string creation for optimal performance.
@@ -108,7 +124,7 @@ else
 }
 ```
 
-`hashmap_get()` returns `true` if the item was found, and `false` otherwise. Internally, the hashmap stores `uintptr_t` values alongside your keys because it's an integer type that's guaranteed to be large enough to store pointer types. `uintptr_t` is defined in the C standard as an optional feature (defined in `<stdint.h>`), but it does have pretty widespread support.
+`hashmap_get()` returns `1` if the item was found, and `0` otherwise. Internally, the hashmap stores `uintptr_t` values alongside your keys because it's an integer type that's guaranteed to be large enough to store pointer types. `uintptr_t` is defined in the C standard as an optional feature (defined in `<stdint.h>`), but it does have pretty widespread support.
 
 In the example above, we cast the `uintptr_t` result to an integer so we can print it, but if you're using a hashmap to store pointer addresses, then you can cast it to any pointer type you like.
 
@@ -118,15 +134,17 @@ Use `hashmap_set()` to associate a value with a given key:
 
 ```c
 // map, key data, key size, and associated value
-void hashmap_set(hashmap* map, void* key, size_t ksize, uintptr_t value);
+int hashmap_set(hashmap* map, void* key, size_t ksize, uintptr_t value);
 ```
 
 Example:
 
 ```c
-int x;
+int x, error;
 
-hashmap_set(m, "hello", 5, x);
+error = hashmap_set(m, "hello", 5, x);
+if (error == -1)
+    fprintf(stderr, "hashmap_set: %s\n", strerror(errno));
 ```
 
 `hashmap_set` will either create a new entry in the hashmap with a given key, or overwrite an existing one.
@@ -139,7 +157,7 @@ Normally, this would require two table lookups, but this function can do it with
 
 ```c
 // map, key, key size, and input/output pointer
-bool hashmap_get_set(hashmap* map, void* key, size_t ksize, uintptr_t* out_in);
+int hashmap_get_set(hashmap* map, void* key, size_t ksize, uintptr_t* out_in);
 ```
 
 Example:
@@ -149,9 +167,13 @@ Example:
 // if there is an entry, it's value will be stored here
 uintptr_t ivalue = 0;
 
+int error;
+
 // if there is a match, `ivalue` will be set to the entry's current value,
 // otherwise, a new entry will be created with the current value of `ivalue`
-hashmap_get_set(m, "hello", 5, &ivalue);
+error = hashmap_get_set(m, "hello", 5, &ivalue);
+if (error == -1)
+    fprintf(stderr, "hashmap_get_set: %s\n", strerror(errno));
 ```
 
 ## Removing Entries
@@ -190,9 +212,9 @@ If you want to free an entry's data before removing that entry, there's a variat
 
 ```c
 // a callback type used for iterating over a map/freeing entries:
-// `void <function name>(void* key, size_t size, uintptr_t value, void* usr)`
+// `int <function name>(void* key, size_t size, uintptr_t value, void* usr)`
 // `usr` is a user pointer which can be passed through `hashmap_iterate`.
-typedef void (*hashmap_callback)(void* key, size_t ksize, uintptr_t value, void* usr);
+typedef int (*hashmap_callback)(void* key, size_t ksize, uintptr_t value, void* usr);
 ```
 
 These callbacks allow operations to be done on individual hashmap entries. The entry's key, key size, and value will be passed alongside a user pointer. There are multiple functions that use these callbacks, but this section will only cover one:
@@ -201,29 +223,37 @@ Iterate over hashmap entries with `hashmap_iterate`:
 
 ```c
 // map, callback, user pointer
-void hashmap_iterate(hashmap* map, hashmap_callback c, void* usr);
+int hashmap_iterate(hashmap* map, hashmap_callback c, void* usr);
 ```
 
 Example:
 
 ```c
 // define our callback with the correct parameters
-void print_entry(void* key, size_t ksize, uintptr_t value, void* usr)
+int print_entry(void* key, size_t ksize, uintptr_t value, void* usr)
 {
 	// prints the entry's key and value
 	// assumes the key is a null-terminated string
-	printf("Entry \"%s\": %i\n", key, value);
+    // If there is any error with printf, the iteration will abort
+	return printf("Entry \"%s\": %i\n", key, value);
 }
 
 /*
 ...
 */
 
+int error;
+
 // print the key and value of each entry
-hashmap_iterate(m, print_entry, NULL);
+// error holds the last returned value from print_entry
+error = hashmap_iterate(m, print_entry, NULL);
+if (error == -1)
+    fprintf(stderr, "hashmap_iterate: %s\n", strerror(errno));
 ```
 
 `hashmap_iterate` will iterate over each element in the order they were originally added.
+If the callback returns `-1` then then iteration is aborted.
+`hashmap_iterate` returns the last callback result.
 
 Internally, all entries are stored in one continuous chunk of memory alongside empty "buckets," which are reserved space for entries that may need to be set in that location. All entries double as a linked-list, which is done by keeping track of the most recent entry so it can be linked to the next entry once it's added.
 
@@ -262,7 +292,7 @@ Example using `hashmap_set_free()`:
 
 ```c
 // user defined function
-void ov_free(void* key, size_t ksize, uintptr_t value, void* usr)
+int ov_free(void* key, size_t ksize, uintptr_t value, void* usr)
 {
 	free((void*)value);
 
@@ -271,6 +301,9 @@ void ov_free(void* key, size_t ksize, uintptr_t value, void* usr)
 	{
 		free(key);
 	}
+
+    // Continue iterating
+    return 0;
 }
 
 /*
@@ -302,24 +335,27 @@ Example:
 
 ```c
 // user defined function
-void free_map_entry(void* key, size_t ksize, uintptr_t value, void* usr)
+int free_map_entry(void* key, size_t ksize, uintptr_t value, void* usr)
 {
 	free((void*)value);
+    return 0;
 }
 
 /*
 ...
 */
+int error;
 
 // the hashmap now owns the allocated space
-hashmap_set(m, "hello", 5, malloc(100));
+error = hashmap_set(m, "hello", 5, malloc(100));
 
 /*
 ...
 */
 
 // free the entry's data before removing the entry
-hashmap_remove_free(m, "hello", 5, free_map_entry, NULL);
+if (error != -1)
+    hashmap_remove_free(m, "hello", 5, free_map_entry, NULL);
 ```
 
 More information on using callbacks can be found in the "[Callbacks/Iterating Over Elements](#callbacksiterating-over-elements)" section above.
