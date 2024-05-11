@@ -38,7 +38,7 @@ if (error == -1)
     fprintf(stderr, "hashmap_set: %s\n", strerror(errno));
 ```
 
-In the example above, the compiler will treat `sizeof("hello") - 1` as the constant `4`, which will have zero runtime overhead. This is an example of the freedom you get from passing in the length of a key yourself.
+In the example above, the compiler will treat `sizeof("hello") - 1` as the constant `5`, which will have zero runtime overhead. This is an example of the freedom you get from passing in the length of a key yourself.
 
 You can use the macro `hashmap_str_lit(str)` to simplify the usage of string literal keys:
 
