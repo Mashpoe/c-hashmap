@@ -35,10 +35,10 @@ int error;
 // associates the value `400` with the key "hello"
 error = hashmap_set(m, "hello", sizeof("hello") - 1, 400); // `- 1` if you want to ignore the null terminator
 if (error == -1)
-    fprintf(stderr, "hashmap_set: %s\n", strerror(errno));
+    fprintf(stderr, "hashmap_set: %s\n", strerror(error));
 ```
 
-In the example above, the compiler will treat `sizeof("hello") - 1` as the constant `4`, which will have zero runtime overhead. This is an example of the freedom you get from passing in the length of a key yourself.
+In the example above, the compiler will treat `sizeof("hello") - 1` as the constant `5`, which will have zero runtime overhead. This is an example of the freedom you get from passing in the length of a key yourself.
 
 You can use the macro `hashmap_str_lit(str)` to simplify the usage of string literal keys:
 
@@ -48,7 +48,7 @@ int error;
 // expands to `hashmap_set(m, "foo", 3, 400);`
 error = hashmap_set(m, hashmap_str_lit("foo"), 400);
 if (error == -1)
-    fprintf(stderr, "hashmap_set: %s\n", strerror(errno));
+    fprintf(stderr, "hashmap_set: %s\n", strerror(error));
 /*
 
 -or-
@@ -61,7 +61,7 @@ char ch_arr[] = "bar";
 
 error = hashmap_set(m, hashmap_str_lit(ch_arr), 400);
 if (error == -1)
-    fprintf(stderr, "hashmap_set: %s\n", strerror(errno));
+    fprintf(stderr, "hashmap_set: %s\n", strerror(error));
 ```
 
 The macro `hashmap_static_arr(arr)` does the same thing, but with static arrays (or anything that's stored on the stack). The only difference is that it won't subtract from the size to account for a null terminator:
@@ -72,7 +72,7 @@ int error, numbers[] = {1, 2, 3, 4, 5};
 // expands to `hashmap_set(m, numbers, 5, 400);`
 error = hashmap_set(m, hashmap_static_arr(numbers), 400);
 if (error == -1)
-    fprintf(stderr, "hashmap_set: %s\n", strerror(errno));
+    fprintf(stderr, "hashmap_set: %s\n", strerror(error));
 ```
 
 Both of these macros work for other library calls as well, such as `hashmap_get()` or `hashmap_remove()`. Just use the macro in place of the `key` and `ksize` arguments.
@@ -89,7 +89,7 @@ const char* str = get_str();
 
 error = hashmap_set(m, str, strlen(str), 400);
 if (error == -1)
-    fprintf(stderr, "hashmap_set: %s\n", strerror(errno));
+    fprintf(stderr, "hashmap_set: %s\n", strerror(error));
 ```
 
 Unfortunatley, `strlen()` is an O(n) function, which is not ideal when you're trying to save time with hashmaps. If possible, try storing the length of your keys upon string creation for optimal performance.
@@ -144,7 +144,7 @@ int x, error;
 
 error = hashmap_set(m, "hello", 5, x);
 if (error == -1)
-    fprintf(stderr, "hashmap_set: %s\n", strerror(errno));
+    fprintf(stderr, "hashmap_set: %s\n", strerror(error));
 ```
 
 `hashmap_set` will either create a new entry in the hashmap with a given key, or overwrite an existing one.
@@ -173,7 +173,7 @@ int error;
 // otherwise, a new entry will be created with the current value of `ivalue`
 error = hashmap_get_set(m, "hello", 5, &ivalue);
 if (error == -1)
-    fprintf(stderr, "hashmap_get_set: %s\n", strerror(errno));
+    fprintf(stderr, "hashmap_get_set: %s\n", strerror(error));
 ```
 
 ## Removing Entries
@@ -248,7 +248,7 @@ int error;
 // error holds the last returned value from print_entry
 error = hashmap_iterate(m, print_entry, NULL);
 if (error == -1)
-    fprintf(stderr, "hashmap_iterate: %s\n", strerror(errno));
+    fprintf(stderr, "hashmap_iterate: %s\n", strerror(error));
 ```
 
 `hashmap_iterate` will iterate over each element in the order they were originally added.
