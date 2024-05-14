@@ -21,9 +21,9 @@
 typedef struct hashmap hashmap;
 
 // a callback type used for iterating over a map/freeing entries:
-// `void <function name>(void* key, size_t size, uintptr_t value, void* usr)`
+// `int <function name>(const void* key, size_t size, uintptr_t value, void* usr)`
 // `usr` is a user pointer which can be passed through `hashmap_iterate`.
-typedef int (*hashmap_callback)(void *key, size_t ksize, uintptr_t value, void *usr);
+typedef int (*hashmap_callback)(const void *key, size_t ksize, uintptr_t value, void *usr);
 
 hashmap* hashmap_create(void);
 
