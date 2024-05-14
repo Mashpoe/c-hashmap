@@ -307,7 +307,7 @@ int hashmap_set_free(hashmap* m, const void* key, size_t ksize, uintptr_t val, h
 	// allow the callback to free entry data.
 	// use old key and value so the callback can free them.
 	// the old key and value will be overwritten after this call.
-	int error = c((void*)entry->key, ksize, entry->value, usr);
+	int error = c(entry->key, ksize, entry->value, usr);
 
 	// overwrite the old key pointer in case the callback frees it.
 	entry->key = key;
@@ -353,7 +353,7 @@ void hashmap_remove_free(hashmap* m, const void* key, size_t ksize, hashmap_call
 
 	if (entry->key != NULL)
 	{
-		c((void*)entry->key, entry->ksize, entry->value, usr);
+		c(entry->key, entry->ksize, entry->value, usr);
 		
 		// "tombstone" entry is signified by a NULL key with a nonzero value
 		// element removal is optional because of the overhead of tombstone checks
@@ -388,7 +388,7 @@ int hashmap_iterate(hashmap* m, hashmap_callback c, void* user_ptr)
 		// "tombstone" check
 		if (current->key != NULL)
 		#endif
-			error = c((void*)current->key, current->ksize, current->value, user_ptr);
+			error = c(current->key, current->ksize, current->value, user_ptr);
 		if (error == -1)
 			break;
 		

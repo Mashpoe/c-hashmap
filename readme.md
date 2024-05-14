@@ -104,7 +104,7 @@ Use `hashmap_get()` to get the value associated with a given key:
 
 ```c
 // map, key data, key size, and pointer to output location
-bool hashmap_get(hashmap* map, void* key, size_t ksize, uintptr_t* out_val);
+int hashmap_get(hashmap* map, const void* key, size_t ksize, uintptr_t* out_val);
 ```
 
 Example:
@@ -134,7 +134,7 @@ Use `hashmap_set()` to associate a value with a given key:
 
 ```c
 // map, key data, key size, and associated value
-int hashmap_set(hashmap* map, void* key, size_t ksize, uintptr_t value);
+int hashmap_set(hashmap* map, const void* key, size_t ksize, uintptr_t value);
 ```
 
 Example:
@@ -157,7 +157,7 @@ Normally, this would require two table lookups, but this function can do it with
 
 ```c
 // map, key, key size, and input/output pointer
-int hashmap_get_set(hashmap* map, void* key, size_t ksize, uintptr_t* out_in);
+int hashmap_get_set(hashmap* map, const void* key, size_t ksize, uintptr_t* out_in);
 ```
 
 Example:
@@ -194,7 +194,7 @@ Use `hashmap_remove()` to remove entries:
 
 ```c
 // map, key, key size
-void hashmap_remove(hashmap* map, void* key, size_t ksize);
+void hashmap_remove(hashmap* map, const void* key, size_t ksize);
 ```
 
 Example:
@@ -212,9 +212,9 @@ If you want to free an entry's data before removing that entry, there's a variat
 
 ```c
 // a callback type used for iterating over a map/freeing entries:
-// `int <function name>(void* key, size_t size, uintptr_t value, void* usr)`
+// `int <function name>(const void* key, size_t size, uintptr_t value, void* usr)`
 // `usr` is a user pointer which can be passed through `hashmap_iterate`.
-typedef int (*hashmap_callback)(void* key, size_t ksize, uintptr_t value, void* usr);
+typedef int (*hashmap_callback)(const void* key, size_t ksize, uintptr_t value, void* usr);
 ```
 
 These callbacks allow operations to be done on individual hashmap entries. The entry's key, key size, and value will be passed alongside a user pointer. There are multiple functions that use these callbacks, but this section will only cover one:
@@ -230,7 +230,7 @@ Example:
 
 ```c
 // define our callback with the correct parameters
-int print_entry(void* key, size_t ksize, uintptr_t value, void* usr)
+int print_entry(const void* key, size_t ksize, uintptr_t value, void* usr)
 {
 	// prints the entry's key and value
 	// assumes the key is a null-terminated string
@@ -283,7 +283,7 @@ You can use a callback to free an entry's data before overwriting it:
 
 ```c
 // map, key, key size, new value, callback, user pointer
-void hashmap_set_free(hashmap* map, void* key, size_t ksize, uintptr_t value, hashmap_callback c, void* usr);
+void hashmap_set_free(hashmap* map, const void* key, size_t ksize, uintptr_t value, hashmap_callback c, void* usr);
 ```
 
 `hashmap_set_free()` is similar to `hashmap_set()`, but when overwriting an entry, you'll be able properly free the old entry's data via a callback. Unlike `hashmap_set()`, this function will overwrite the original key pointer, which means you can free the old key in the callback if applicable.
@@ -292,14 +292,14 @@ Example using `hashmap_set_free()`:
 
 ```c
 // user defined function
-int ov_free(void* key, size_t ksize, uintptr_t value, void* usr)
+int ov_free(const void* key, size_t ksize, uintptr_t value, void* usr)
 {
 	free((void*)value);
 
 	// free the old key if it has a different address
 	if (key != usr)
 	{
-		free(key);
+		free((void*)key);
 	}
 
     // Continue iterating
@@ -326,7 +326,7 @@ You can use a callback to free an entry's data before removing it. You don't nec
 This can be done using `hashmap_remove_free()`:
 
 ```c
-void hashmap_remove_free(hashmap* m, void* key, size_t ksize, hashmap_callback* c, void* usr);
+void hashmap_remove_free(hashmap* m, const void* key, size_t ksize, hashmap_callback* c, void* usr);
 ```
 
 **NOTE:** Before using this function, be sure to read the "[Removing Entries](#removing-entries)" section above.
@@ -335,7 +335,7 @@ Example:
 
 ```c
 // user defined function
-int free_map_entry(void* key, size_t ksize, uintptr_t value, void* usr)
+int free_map_entry(const void* key, size_t ksize, uintptr_t value, void* usr)
 {
 	free((void*)value);
     return 0;
