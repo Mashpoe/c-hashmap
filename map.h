@@ -32,6 +32,11 @@ hashmap* hashmap_create(void);
 // to free data associated with an element, call `hashmap_iterate`.
 void hashmap_free(hashmap* map);
 
+// removes all hashmap elements without deallocating any storage
+// does not call free on each element's `key` or `value`.
+// the function is available even without __HASHMAP_REMOVABLE
+void hashmap_clear(hashmap* map);
+
 // does not make a copy of `key`.
 // you must copy it yourself if you want to guarantee its lifetime,
 // or if you intend to call `hashmap_key_free`.
