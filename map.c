@@ -91,6 +91,8 @@ void hashmap_clear(hashmap* m)
 	memset(m->buckets, 0, m->capacity * sizeof(struct bucket));
 
 	m->first = NULL;
+
+	// see `hashmap_create`
 	m->last = (struct bucket*)&m->first;
 }
 
