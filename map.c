@@ -79,6 +79,23 @@ void hashmap_free(hashmap* m)
 	free(m);
 }
 
+void hashmap_clear(hashmap* m)
+{
+	// retain m->capacity
+	m->count = 0;
+
+	#ifdef __HASHMAP_REMOVABLE
+	m->tombstone_count = 0;
+	#endif
+
+	memset(m->buckets, 0, m->capacity * sizeof(struct bucket));
+
+	m->first = NULL;
+
+	// see `hashmap_create`
+	m->last = (struct bucket*)&m->first;
+}
+
 // puts an old bucket into a resized hashmap
 static struct bucket* resize_entry(hashmap* m, struct bucket* old_entry)
 {
